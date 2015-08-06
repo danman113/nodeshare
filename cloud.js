@@ -1,11 +1,29 @@
+//Modules
 var app=require('express')();
 var http=require('http').Server(app);
 var fs=require("fs");
 var prompt=require("prompt");
+var settings={assetPath:"/Assets/",defaultPort:256};
 
-getPort();
+fs.readFile("config.ini",{encoding:"utf8"},function(err,data){
+	if(err){
+		console.log("Error reading config.ini file!");
+	} else {
+		for(var option in settings){
+			var reg=new RegExp(option+"=(.+)","g");
+			var matches=reg.exec(data);
+			if(matches!=null){
+				settings[option]=matches[1];
+				console.log("Set "+option+" to "+matches[1]);
+			}
+		}
+	}
+	getPort();
+});
+
+
 function getPort(){
-	var portSchema={name:"Port",default:256,description:"Port:",type:"number",message:"Port must be a number"};
+	var portSchema={name:"Port",default:settings.defaultPort,description:"Port:",type:"number",message:"Port must be a number"};
 	console.log("Please enter the port you want to run the server on.");
 	prompt.message="";
 	prompt.delimiter="";
@@ -65,7 +83,7 @@ function startCloud(filepath){
 		openDirectory(path,"/",res);
 	});
 	app.get("/Sys/:id", function(req,res){
-		res.sendFile(__dirname+"/"+req.params.id);
+		res.sendFile(__dirname+"/"+settings.assetPath+req.params.id);
 	});
 	app.get("*", function(req,res){
 		var pathname=req._parsedUrl.pathname.substring(1,req._parsedUrl.pathname.length);
